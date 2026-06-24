@@ -1,0 +1,67 @@
+import { useState, useEffect } from "react"
+import { useAuth, API } from "../App"
+
+const TIPS = [
+  "Separe 10% da sua renda assim que receber. Pague-se primeiro, antes de qualquer conta.",
+  "Crie um fundo de emergência de pelo menos 3 meses de despesas.",
+  "Anote todos os seus gastos esta semana. Consciência é o primeiro passo.",
+  "Busque renegociar seus contratos: internet, celular, seguros. Pequenas economias somam muito.",
+]
+
+const BOOKS = [
+  { emoji: "📗", title: "O Homem Mais Rico da Babilônia", desc: "Princípios atemporais de finanças em formato de parábolas. Essencial para quem quer começar a poupar." },
+  { emoji: "📕", title: "Pai Rico, Pai Pobre", desc: "A diferença entre ativos e passivos e como construir riqueza com qualquer renda." },
+  { emoji: "📘", title: "Os Segredos da Mente Milionária", desc: "Como reprogramar sua mentalidade financeira para atrair e manter dinheiro." },
+]
+
+const s = {
+  card: { background: "#fff", border: "0.5px solid rgba(44,85,69,0.15)", borderRadius: 12, padding: "14px" },
+}
+
+export default function Dashboard() {
+  const { user, token } = useAuth()
+  const [goals, setGoals] = useState([])
+  const tip = TIPS[new Date().getDay() % TIPS.length]
+
+  useEffect(() => {
+    fetch(`${API}/api/goals`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json()).then(setGoals).catch(() => {})
+  }, [])
+
+  const active = goals.filter(g => g.progress < 100).length
+  const done = goals.filter(g => g.progress >= 100).length
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 600, color: "#1a2e26" }}>Olá, {user?.name?.split(" ")[0]}! 👋</h2>
+        <p style={{ fontSize: 13, color: "#5a7a6e", marginTop: 2 }}>Veja como estão suas metas hoje</p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+        {[["Metas ativas", active, "#2C5545"], ["Concluídas", done, "#C86A53"]].map(([lbl, val, color]) => (
+          <div key={lbl} style={{ background: "#fff", border: "0.5px solid rgba(44,85,69,0.15)", borderRadius: 12, padding: 14 }}>
+            <div style={{ fontSize: 28, fontWeight: 600, color }}>{val}</div>
+            <div style={{ fontSize: 12, color: "#5a7a6e", marginTop: 2 }}>{lbl}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ background: "#2C5545", borderRadius: 12, padding: 16, marginBottom: 20 }}>
+        <div style={{ fontSize: 11, color: "#a8d4bc", fontWeight: 500, marginBottom: 6 }}>💡 Dica do dia</div>
+        <div style={{ color: "#fff", fontSize: 14, lineHeight: 1.6 }}>{tip}</div>
+      </div>
+
+      <div style={{ fontSize: 12, fontWeight: 500, color: "#5a7a6e", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 10 }}>Biblioteca recomendada</div>
+      {BOOKS.map(b => (
+        <div key={b.title} style={{ ...s.card, display: "flex", gap: 12, marginBottom: 10 }}>
+          <div style={{ width: 44, height: 60, borderRadius: 6, background: "#e8f0ec", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{b.emoji}</div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 500, color: "#1a2e26" }}>{b.title}</div>
+            <div style={{ fontSize: 12, color: "#5a7a6e", marginTop: 4, lineHeight: 1.5 }}>{b.desc}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
