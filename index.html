@@ -1,94 +1,12 @@
-import { useState, useRef, useEffect } from "react"
-import { useAuth, API } from "../App"
-
-export default function Coach() {
-  const { token } = useAuth()
-  const [messages, setMessages] = useState([
-    { role: "ai", text: "Olá! Sou seu coach financeiro. Posso ajudar com metas, economias, dívidas e muito mais. O que você quer saber? 💚" }
-  ])
-  const [input, setInput] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [history, setHistory] = useState([])
-  const bottomRef = useRef(null)
-
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }) }, [messages])
-
-  const send = async () => {
-    const text = input.trim()
-    if (!text || loading) return
-    setInput(""); setLoading(true)
-    const userMsg = { role: "user", text }
-    setMessages(m => [...m, userMsg, { role: "ai", text: "..." }])
-
-    const newHistory = [...history, { role: "user", content: text }]
-    setHistory(newHistory)
-
-    try {
-      const res = await fetch(`${API}/api/coach/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ message: text, history })
-      })
-
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
-      let full = ""
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        const chunk = decoder.decode(value)
-        for (const line of chunk.split("\n")) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6)
-            if (data === "[DONE]") break
-            try {
-              const parsed = JSON.parse(data)
-              full += parsed.text || ""
-              setMessages(m => [...m.slice(0, -1), { role: "ai", text: full }])
-            } catch {}
-          }
-        }
-      }
-      setHistory(h => [...h, { role: "assistant", content: full }])
-    } catch {
-      setMessages(m => [...m.slice(0, -1), { role: "ai", text: "Erro de conexão. Tente novamente." }])
-    }
-    setLoading(false)
-  }
-
-  const handleKey = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send() } }
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 140px)" }}>
-      <div style={{ marginBottom: 12 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 600, color: "#1a2e26" }}>Coach IA</h2>
-        <p style={{ fontSize: 13, color: "#5a7a6e" }}>Powered by Claude Sonnet</p>
-      </div>
-      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, paddingBottom: 12 }}>
-        {messages.map((m, i) => (
-          <div key={i} style={{
-            maxWidth: "85%", padding: "10px 14px", borderRadius: 14, fontSize: 14, lineHeight: 1.6,
-            alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-            background: m.role === "user" ? "#2C5545" : "#fff",
-            color: m.role === "user" ? "#fff" : "#1a2e26",
-            border: m.role === "ai" ? "0.5px solid rgba(44,85,69,0.15)" : "none",
-            borderBottomRightRadius: m.role === "user" ? 4 : 14,
-            borderBottomLeftRadius: m.role === "ai" ? 4 : 14,
-            whiteSpace: "pre-wrap"
-          }}>{m.text}</div>
-        ))}
-        <div ref={bottomRef} />
-      </div>
-      <div style={{ display: "flex", gap: 8, alignItems: "flex-end", paddingTop: 8, borderTop: "0.5px solid rgba(44,85,69,0.1)" }}>
-        <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
-          placeholder="Como posso economizar mais?"
-          rows={1} style={{ flex: 1, border: "0.5px solid rgba(44,85,69,0.2)", borderRadius: 20, padding: "10px 14px", fontSize: 14, fontFamily: "inherit", outline: "none", resize: "none", background: "#fff" }} />
-        <button onClick={send} disabled={loading}
-          style={{ background: loading ? "#5a7a6e" : "#2C5545", border: "none", borderRadius: "50%", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-          <span style={{ color: "#fff", fontSize: 18 }}>↑</span>
-        </button>
-      </div>
-    </div>
-  )
-}
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Organize+</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
