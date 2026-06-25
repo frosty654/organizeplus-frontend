@@ -1,5 +1,12 @@
-import Layout from '/Layout'
-import Dashboard from '/Dashboard'
-import Metas from '/Metas'
-import Dicas from '/Dicas'
-import Coach from '/Coach'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import App from '../App'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
+)
